@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Galaxia de Flores Amarillas</title>
+  <meta name="description" content="Galaxia tridimensional de flores amarillas, frases y música.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌻</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+    canvas{display:block;width:100%;height:100%;touch-action:none}
+    #title{position:fixed;z-index:10;top:30px;left:50%;translate:-50% 0;width:max-content;max-width:calc(100vw - 28px);margin:0;padding:8px 24px 10px;border:1px solid rgba(255,220,80,.38);border-radius:999px;background:linear-gradient(90deg,rgba(0,0,0,.12),rgba(28,17,0,.8) 18%,rgba(28,17,0,.8) 82%,rgba(0,0,0,.12));box-shadow:0 8px 34px rgba(0,0,0,.5),inset 0 1px rgba(255,247,190,.16);backdrop-filter:blur(7px);text-align:center;color:#fffbd0;font:400 clamp(1.7rem,4vw,2.8rem)/1.05 'Indie Flower',cursive;text-shadow:0 0 5px #fff4a5,0 0 13px #ffd700,0 0 26px #f09a00;pointer-events:none}
+    #start{position:fixed;inset:0;z-index:20;display:grid;place-content:center;justify-items:center;padding:22px;background:radial-gradient(circle at 50% 44%,#211200 0,#090500 23%,#010101 58%,#000 100%);color:#fff;overflow:hidden;transition:opacity .75s ease,visibility .75s ease}
+    #start.hide{opacity:0;visibility:hidden;pointer-events:none}
+    #start::before,#start::after{content:"";position:absolute;left:50%;top:36%;border:1px solid rgba(255,205,45,.34);border-radius:50%;translate:-50% -50%;animation:orbitHalo 7s linear infinite;pointer-events:none}
+    #start::before{width:min(73vw,430px);height:min(24vw,142px);box-shadow:0 0 22px rgba(255,179,0,.28),inset 0 0 18px rgba(255,230,100,.12)}
+    #start::after{width:min(56vw,330px);height:min(18vw,108px);animation-direction:reverse;animation-duration:5s}
+    .start-card{position:relative;z-index:2;width:min(92vw,430px);display:grid;justify-items:center;text-align:center}
+    .start-mascot{width:clamp(145px,26vmin,230px);height:auto;filter:drop-shadow(0 0 18px rgba(141,211,255,.7)) drop-shadow(0 0 42px rgba(255,213,67,.3));animation:floatMascot 3s ease-in-out infinite}
+    .welcome{margin:10px 0 2px;color:#fff7bb;font:400 clamp(1.7rem,5vw,2.4rem)/1.1 'Indie Flower',cursive;text-shadow:0 0 10px #e7a600}
+    .intro{margin:0 0 14px;color:rgba(255,250,220,.76);font:400 1rem/1.35 system-ui,sans-serif}
+    .start-button{width:100%;height:52px;margin-top:11px;border:0;border-radius:16px;background:linear-gradient(135deg,#ffe56c,#f5ab00);color:#2b1600;font:800 1.05rem system-ui,sans-serif;cursor:pointer;box-shadow:0 9px 30px rgba(255,172,0,.25),inset 0 1px rgba(255,255,255,.7);transition:transform .2s,filter .2s}
+    .start-button:hover{filter:brightness(1.08);transform:translateY(-1px)}
+    .start-button:active{transform:scale(.985)}
+    #hint{position:fixed;z-index:6;left:50%;bottom:18px;translate:-50% 0;color:rgba(255,250,205,.72);font:400 .95rem 'Indie Flower',cursive;letter-spacing:.02em;pointer-events:none;opacity:0;transition:opacity .8s}
+    #hint.show{opacity:1}
+    #message-layer{position:fixed;inset:0;z-index:15;display:grid;place-items:center;padding:22px;background:rgba(0,0,0,.45);backdrop-filter:blur(5px);opacity:0;visibility:hidden;transition:opacity .28s,visibility .28s}
+    #message-layer.show{opacity:1;visibility:visible}
+    .message-card{position:relative;width:min(91vw,470px);padding:34px 28px 28px;border:1px solid rgba(255,220,90,.48);border-radius:28px;background:radial-gradient(circle at 50% 0,rgba(105,63,0,.94),rgba(13,8,1,.96) 60%);box-shadow:0 0 70px rgba(255,174,0,.23),inset 0 1px rgba(255,255,255,.16);text-align:center;transform:scale(.88) translateY(12px);transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+    #message-layer.show .message-card{transform:scale(1) translateY(0)}
+    .message-flower{font-size:58px;line-height:1;filter:drop-shadow(0 0 14px #eeb000);animation:beat 1.6s ease-in-out infinite}
+    #message-text{margin:14px 0 4px;color:#fff8cc;font:400 clamp(1.45rem,5vw,2rem)/1.28 'Indie Flower',cursive;text-shadow:0 0 9px rgba(255,190,0,.58)}
+    #close-message{position:absolute;top:10px;right:12px;width:38px;height:38px;border:0;border-radius:50%;background:rgba(255,255,255,.08);color:#fff7c7;font-size:1.3rem;cursor:pointer}
+    #flower-tip{position:fixed;z-index:6;left:50%;bottom:19px;translate:-50% 0;padding:9px 15px;border:1px solid rgba(255,219,95,.24);border-radius:999px;background:rgba(0,0,0,.46);backdrop-filter:blur(8px);color:#fff4bb;font:500 .85rem system-ui,sans-serif;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .5s}
+    #flower-tip.show{opacity:1}
+    #mascot-guide{position:fixed;z-index:7;left:18px;bottom:14px;width:clamp(92px,9vw,142px);opacity:0;translate:-20px 0;pointer-events:none;filter:drop-shadow(0 0 18px rgba(118,205,255,.45));transition:opacity .7s,translate .7s}
+    #mascot-guide.show{opacity:.94;translate:0 0;animation:floatMascot 3.2s ease-in-out infinite}
+    #mascot-note{position:fixed;z-index:7;left:130px;bottom:105px;max-width:180px;padding:9px 13px;border:1px solid rgba(159,220,255,.42);border-radius:16px 16px 16px 5px;background:rgba(6,18,30,.76);backdrop-filter:blur(9px);color:#e9f8ff;font:600 .8rem/1.25 system-ui,sans-serif;opacity:0;pointer-events:none;transition:opacity .6s}
+    #mascot-note.show{opacity:1}
+    @keyframes beat{0%,100%{transform:scale(1)}12%{transform:scale(1.15)}24%{transform:scale(1)}36%{transform:scale(1.07)}50%{transform:scale(1)}}
+    @keyframes blink{0%,100%{opacity:.55}50%{opacity:1}}
+    @keyframes orbitHalo{to{transform:rotate(360deg)}}
+    @keyframes floatMascot{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-9px) rotate(1deg)}}
+    @media(max-width:768px){#title{top:12px;width:calc(100vw - 24px);padding:7px 13px 8px;border-radius:20px;font-size:clamp(1.45rem,7vw,2rem);line-height:1.05}#hint{font-size:.8rem;bottom:12px;white-space:nowrap}.welcome{margin-top:7px}.intro{font-size:.9rem;margin-bottom:10px}#start::before,#start::after{top:31%}#flower-tip{bottom:12px;font-size:.78rem}#mascot-guide{left:8px;bottom:5px;width:86px}#mascot-note{left:77px;bottom:72px;max-width:140px;font-size:.7rem;padding:7px 10px}}
+    @media(prefers-reduced-motion:reduce){.sun,.tap{animation:none}}
+  </style>
+</head>
+<body>
+  <canvas id="galaxy" aria-label="Galaxia tridimensional interactiva"></canvas>
+  <h1 id="title">FELIZ DÍA DE LAS FLORES AMARILLAS 🌻</h1>
+  <div id="hint">Arrastra para explorar · rueda para acercarte</div>
+  <div id="flower-tip">✨ Toca un personaje para descubrir un mensaje</div>
+  <img id="mascot-guide" src="assets/mascot-cloud.png" alt="">
+  <div id="mascot-note">Toca los personajes que flotan en la galaxia ✨</div>
+  <div id="start" aria-label="Iniciar experiencia">
+    <div class="start-card">
+      <img class="start-mascot" src="assets/sara-center-bouquet.png" alt="Pequeño personaje blanco ofreciendo un gran ramo de flores amarillas">
+      <h2 class="welcome">Una galaxia hecha para ti</h2>
+      <p class="intro">Cada flor guarda algo bonito</p>
+      <button id="start-button" class="start-button" type="button">Toca para iniciar ✨</button>
+    </div>
+  </div>
+  <div id="message-layer" role="dialog" aria-modal="true" aria-labelledby="message-text">
+    <div class="message-card">
+      <button id="close-message" type="button" aria-label="Cerrar mensaje">×</button>
+      <div class="message-flower" aria-hidden="true">🌻</div>
+      <p id="message-text"></p>
+    </div>
+  </div>
+  <audio id="music" loop preload="auto"><source src="assets/musica.mp3" type="audio/mp4"></audio>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.148.0/build/three.min.js"></script>
+  <script>
+  (()=>{
+    const recipientKey=(new URLSearchParams(location.search).get('para')||'').trim().toLowerCase();
+    const RECIPIENTS={liseth:'Liseth Cerna',zeli:'Zeli',heilly:'Heilly'};
+    const recipientName=RECIPIENTS[recipientKey]||'';
+    const celebration='FELIZ DÍA DE LAS FLORES AMARILLAS';
+    const pageTitle=recipientName?`${recipientName} — ${celebration} 🌻`:`${celebration} 🌻`;
+    document.querySelector('#title').textContent=pageTitle;
+    document.title=recipientName?`${recipientName} | Flores Amarillas`:'Feliz Día de las Flores Amarillas';
+    const PHRASES=[
+      '🌻 Como el girasol, miro hacia ti','🌼 Gracias por ser mi sol de siempre','🌻 Contigo hasta lo simple brilla',
+      '🌼 Hoy el amarillo lleva tu nombre','🌻 Esta flor te recuerda cuánto vales','🌼 Tu amistad, mi lugar favorito',
+      '🌻 21 de septiembre, contigo siempre','🌼 Un girasol para quien ilumina','🌻 Gracias por quedarte siempre',
+      '🌼 Contigo el día pesa menos','🌻 Un gracias que no necesita fecha','🌼 Tu risa le hace bien a mis días',
+      '🌻 Hoy celebro tenerte cerca','🌼 Apareces cuando más hace falta','🌻 Pétalos dorados solo para ti',
+      '🌼 Feliz día, pienso en ti con cariño','🌻 Contigo todo lugar es bonito','🌼 Un ramo de gracias por estar ahí',
+      '🌻 Que esta flor te alcance hoy','🌼 Miras lo bueno, como el girasol','🌻 El campo entero te manda saludos',
+      '🌼 Tu cariño no pasa de moda','🌻 Contigo las tardes se hacen cortas','🌼 Esta flor guarda un abrazo para ti',
+      '🌻 No necesito un motivo para quererte','🌼 Quiero que sepas cuánto importas','🌻 El amarillo también dice te quiero',
+      '🌼 Gracias por sumar luz a mis días','🌻 Aquí siempre tienes un lugar','🌼 Feliz día, contigo todo es mejor'
+    ];
+    const FLOWERS=['assets/img1.png','assets/img2.png','assets/img3.png'];
+    const MASCOTS=['assets/mascot-cloud.png','assets/mascot-flying.png','assets/mascot-star.png','assets/mascot-basket.png'];
+    const MESSAGE_BANK=[
+      `${recipientName?recipientName+', ':''}tu cariño es de esas luces que hacen más bonito cualquier día.`,
+      'Gracias por estar, por escuchar y por hacerme sentir acompañado.',
+      'Esta flor guarda un abrazo enorme especialmente para ti.',
+      'Eres una de esas personas que uno quiere conservar siempre cerca.',
+      'Entre tantas estrellas, siempre reconocería tu luz.',
+      'Contigo hasta los momentos sencillos se convierten en buenos recuerdos.',
+      'Tal vez no lo digo suficiente: gracias por existir y ser parte de mi vida.',
+      'Que nunca te falten motivos para sonreír ni personas que cuiden tu corazón.',
+      'Tu forma de ser deja luz incluso cuando no te das cuenta.',
+      'Si hoy recibes una flor amarilla, que también recibas todo mi cariño.'
+    ];
+    const canvas=document.querySelector('#galaxy');
+    const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
+    renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+    renderer.setSize(innerWidth,innerHeight);
+    renderer.outputEncoding=THREE.sRGBEncoding;
+    const scene=new THREE.Scene();
+    scene.background=new THREE.Color(0x000000);
+    const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,5000);
+    const initialDistance=innerWidth<=768?(innerHeight>innerWidth?560:420):300;
+    let targetDistance=initialDistance,distance=initialDistance,rotX=.2,rotY=0;
+
+    const starGeometry=new THREE.BufferGeometry();
+    const starPositions=new Float32Array(6000);
+    for(let i=0;i<2000;i++){
+      const radius=3000*(.3+Math.random()*.7),theta=Math.random()*Math.PI*2,phi=Math.acos(2*Math.random()-1);
+      starPositions[i*3]=radius*Math.sin(phi)*Math.cos(theta);
+      starPositions[i*3+1]=radius*Math.cos(phi);
+      starPositions[i*3+2]=radius*Math.sin(phi)*Math.sin(theta);
+    }
+    starGeometry.setAttribute('position',new THREE.BufferAttribute(starPositions,3));
+    scene.add(new THREE.Points(starGeometry,new THREE.PointsMaterial({size:1.5,color:0xffffff,depthWrite:false})));
+
+    const core=new THREE.Mesh(new THREE.SphereGeometry(40,64,64),new THREE.MeshPhongMaterial({color:0x010101,emissive:0x110700,transparent:true,opacity:.22,shininess:70}));
+    scene.add(core);
+
+    const corona=new THREE.Mesh(new THREE.SphereGeometry(45,64,64),new THREE.MeshBasicMaterial({color:0xffb000,transparent:true,opacity:.16,blending:THREE.AdditiveBlending,side:THREE.BackSide,depthWrite:false,depthTest:false}));corona.renderOrder=-30;
+    scene.add(corona);
+    const dustGeometry=new THREE.BufferGeometry(),dustPositions=new Float32Array(840),dustColors=new Float32Array(840);
+    for(let i=0;i<280;i++){const angle=Math.random()*Math.PI*2,r=48+Math.pow(Math.random(),.7)*82,height=(Math.random()-.5)*9;dustPositions[i*3]=Math.cos(angle)*r;dustPositions[i*3+1]=height;dustPositions[i*3+2]=Math.sin(angle)*r;const hot=1-r/140;dustColors[i*3]=1;dustColors[i*3+1]=.43+hot*.45;dustColors[i*3+2]=.04}
+    dustGeometry.setAttribute('position',new THREE.BufferAttribute(dustPositions,3));dustGeometry.setAttribute('color',new THREE.BufferAttribute(dustColors,3));
+    const dust=new THREE.Points(dustGeometry,new THREE.PointsMaterial({size:2.1,vertexColors:true,transparent:true,opacity:.88,blending:THREE.AdditiveBlending,depthWrite:false,depthTest:false}));dust.renderOrder=-25;dust.rotation.x=.12;scene.add(dust);
+
+    function glowTexture(){
+      const c=document.createElement('canvas');c.width=c.height=768;const x=c.getContext('2d');
+      const g=x.createRadialGradient(384,384,38,384,384,384);
+      g.addColorStop(0,'rgba(255,235,130,.55)');g.addColorStop(.5,'rgba(255,180,0,.25)');g.addColorStop(1,'rgba(0,0,0,0)');
+      x.fillStyle=g;x.fillRect(0,0,768,768);return new THREE.CanvasTexture(c);
+    }
+    const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTexture(),transparent:true,depthWrite:false,depthTest:false}));glow.renderOrder=-35;
+    glow.scale.set(360,360,1);scene.add(glow);
+
+    function ringTexture(){
+      const s=1024,c=document.createElement('canvas');c.width=c.height=s;const x=c.getContext('2d');x.translate(s/2,s/2);
+      const inner=s*.205,outer=s*.49,g=x.createRadialGradient(0,0,inner,0,0,outer);
+      g.addColorStop(0,'rgba(255,255,245,1)');g.addColorStop(.3,'rgba(255,235,120,1)');g.addColorStop(.65,'rgba(255,200,40,.95)');g.addColorStop(1,'rgba(255,160,0,.85)');
+      x.fillStyle=g;x.beginPath();x.arc(0,0,outer,0,Math.PI*2);x.arc(0,0,inner,0,Math.PI*2,true);x.closePath();x.fill();
+      for(let i=0;i<26;i++){const r=inner+(outer-inner)*(i/25);x.beginPath();x.arc(0,0,r,0,Math.PI*2);x.lineWidth=(outer-inner)/26*(.55+Math.random()*.35);x.strokeStyle=i%3===0?'rgba(110,60,0,.2)':'rgba(255,255,225,.16)';x.stroke()}
+      return new THREE.CanvasTexture(c);
+    }
+    const ring=new THREE.Mesh(new THREE.RingGeometry(42,116,160),new THREE.MeshBasicMaterial({map:ringTexture(),transparent:true,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false,depthTest:false}));ring.renderOrder=-20;
+    ring.rotation.x=Math.PI/2;scene.add(ring);
+
+    const textGroup=new THREE.Group(),flowerGroup=new THREE.Group(),specialFlowerGroup=new THREE.Group(),mascotGroup=new THREE.Group();scene.add(textGroup,flowerGroup,specialFlowerGroup,mascotGroup);
+    const colors=['#ffd700','#ffe066','#ffcc33','#ffb347','#fff2b0','#ffaa00','#f4c430','#e6b800','#ffdb58','#f0c419'];
+    function textTexture(text,color){
+      const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');x.textAlign='center';x.textBaseline='middle';x.fillStyle='#fff';x.shadowColor=color;x.shadowBlur=30;
+      let size=60;x.font=size+"px 'Indie Flower',cursive";while(x.measureText(text).width>464&&size>24){size-=2;x.font=size+"px 'Indie Flower',cursive"}x.fillText(text,256,64);return new THREE.CanvasTexture(c);
+    }
+    function orbit(sprite,minR,extraR,minSpeed,extraSpeed){
+      const phi=Math.acos(2*Math.random()-1),theta=Math.random()*Math.PI*2,radius=minR+Math.random()*extraR;
+      sprite.position.set(radius*Math.sin(phi)*Math.cos(theta),radius*Math.cos(phi),radius*Math.sin(phi)*Math.sin(theta));
+      sprite.userData={phi,theta,radius,speed:minSpeed+Math.random()*extraSpeed};
+    }
+    (document.fonts?.load("40px 'Indie Flower'")||Promise.resolve()).catch(()=>{}).then(()=>{
+      for(let i=0;i<112;i++){const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:textTexture(PHRASES[i%PHRASES.length],colors[i%colors.length]),transparent:true}));sprite.scale.set(68,21.8,1);orbit(sprite,160,135,.001,.001);textGroup.add(sprite)}
+    });
+    function flowerSprite(url,size){
+      const c=document.createElement('canvas');c.width=c.height=256,texture=new THREE.CanvasTexture(c),sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true}));sprite.scale.set(size,size,1);
+      const img=new Image();img.onload=()=>{const x=c.getContext('2d'),scale=Math.min(256/img.width,256/img.height);x.clearRect(0,0,256,256);x.drawImage(img,(256-img.width*scale)/2,(256-img.height*scale)/2,img.width*scale,img.height*scale);texture.needsUpdate=true;const aspect=img.naturalWidth/img.naturalHeight;sprite.scale.set(size*Math.min(1,aspect),size*Math.min(1,1/aspect),1)};img.src=url;return sprite;
+    }
+    for(let i=0;i<26;i++){const sprite=flowerSprite(FLOWERS[i%3],21+Math.random()*18);orbit(sprite,155,180,.0006,.0012);flowerGroup.add(sprite)}
+    function interactiveFlowerSprite(url,size,index){
+      const c=document.createElement('canvas');c.width=c.height=512;const x=c.getContext('2d'),texture=new THREE.CanvasTexture(c);
+      const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthWrite:false,depthTest:false}));sprite.scale.set(size,size,1);sprite.renderOrder=8;
+      const drawBase=()=>{x.clearRect(0,0,512,512);const glow=x.createRadialGradient(256,256,50,256,256,245);glow.addColorStop(0,'rgba(255,246,170,.32)');glow.addColorStop(.52,'rgba(255,196,45,.16)');glow.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=glow;x.fillRect(0,0,512,512);x.save();x.translate(256,256);x.shadowColor='#ffd84b';x.shadowBlur=14;for(let j=0;j<8;j++){const a=j*Math.PI/4+index*.32,r=202+(j%2)*15;x.fillStyle=j%2?'#fff5b5':'#ffd84b';x.beginPath();x.arc(Math.cos(a)*r,Math.sin(a)*r,4+(j%3),0,Math.PI*2);x.fill()}x.restore()};
+      drawBase();const img=new Image();img.onload=()=>{drawBase();const scale=Math.min(272/img.width,272/img.height);x.shadowColor='#ffd84b';x.shadowBlur=26;x.drawImage(img,256-img.width*scale/2,256-img.height*scale/2,img.width*scale,img.height*scale);texture.needsUpdate=true};img.src=url;
+      sprite.userData.baseSize=size;sprite.userData.special=true;sprite.userData.clickBoost=0;return sprite;
+    }
+    for(let i=0;i<12;i++){const sprite=interactiveFlowerSprite(FLOWERS[i%3],42+(i%3)*3,i);const phi=.42+(i%6)*.43,theta=i/12*Math.PI*2;const radius=142+(i%3)*38;sprite.position.set(radius*Math.sin(phi)*Math.cos(theta),radius*Math.cos(phi),radius*Math.sin(phi)*Math.sin(theta));sprite.userData={...sprite.userData,phi,theta,radius,speed:.00072+i*.000055};specialFlowerGroup.add(sprite)}
+    function imageSprite(url,size,front=false){const texture=new THREE.TextureLoader().load(url);texture.encoding=THREE.sRGBEncoding;const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthWrite:false,depthTest:!front}));sprite.scale.set(size,size,1);if(front){sprite.renderOrder=12}return sprite}
+    const centerMascot=imageSprite('assets/sara-center-bouquet.png',148,false);centerMascot.material.depthTest=false;centerMascot.material.opacity=1;centerMascot.material.alphaTest=.015;centerMascot.renderOrder=30;centerMascot.scale.set(174,145,1);centerMascot.userData.clickBoost=0;scene.add(centerMascot);
+    for(let i=0;i<18;i++){const baseSize=29+(i%4)*5,phi=.32+(i%7)*.4,theta=i/18*Math.PI*2+.27,radius=165+(i%5)*42;const sprite=imageSprite(MASCOTS[i%MASCOTS.length],baseSize,false);sprite.position.set(radius*Math.sin(phi)*Math.cos(theta),radius*Math.cos(phi),radius*Math.sin(phi)*Math.sin(theta));sprite.userData={phi,theta,radius,speed:.00042+i*.000027,baseSize,clickBoost:0};mascotGroup.add(sprite)}
+
+    let dragging=false,lastX=0,lastY=0,pinch=0;
+    function down(e){dragging=true;const p=e.touches?e.touches[0]:e;lastX=p.clientX;lastY=p.clientY}
+    function move(e){if(!dragging)return;const p=e.touches?e.touches[0]:e;rotY-=(p.clientX-lastX)/innerWidth*5;rotX=Math.max(-1.2,Math.min(1.2,rotX+(p.clientY-lastY)/innerHeight*3.5));lastX=p.clientX;lastY=p.clientY}
+    addEventListener('mousedown',down);addEventListener('mousemove',move);addEventListener('mouseup',()=>dragging=false);
+    addEventListener('touchstart',down,{passive:true});addEventListener('touchmove',e=>{move(e);if(e.touches.length===2){e.preventDefault();const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);if(pinch)targetDistance=Math.max(160,Math.min(600,targetDistance+(pinch-d)*.5));pinch=d}},{passive:false});addEventListener('touchend',()=>{dragging=false;pinch=0},{passive:true});
+    addEventListener('wheel',e=>targetDistance=Math.max(160,Math.min(600,targetDistance+e.deltaY*.25)),{passive:true});
+    addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()});
+
+    let time=0;
+    function animate(){requestAnimationFrame(animate);time+=.01;ring.rotation.z+=.003;dust.rotation.y+=.0045;const pulse=360*(1+Math.sin(time*.8)*.055);glow.scale.set(pulse,pulse,1);const beat=1+.045*Math.sin(time*3);core.scale.set(beat,beat,beat);corona.scale.setScalar(1+.1*Math.sin(time*2.2));corona.material.opacity=.12+.08*(.5+.5*Math.sin(time*2));const heroPulse=(1+.025*Math.sin(time*2))*(Date.now()<centerMascot.userData.clickBoost?1.1:1);centerMascot.scale.set(174*heroPulse,145*heroPulse,1);
+      textGroup.children.forEach(s=>{s.material.opacity=.8+.2*Math.sin(time*2);s.userData.theta+=s.userData.speed;s.position.x=s.userData.radius*Math.sin(s.userData.phi)*Math.cos(s.userData.theta);s.position.z=s.userData.radius*Math.sin(s.userData.phi)*Math.sin(s.userData.theta)});
+      flowerGroup.children.forEach(s=>{s.material.opacity=.85+.15*Math.sin(time*2+s.userData.radius);s.userData.theta+=s.userData.speed;s.position.x=s.userData.radius*Math.sin(s.userData.phi)*Math.cos(s.userData.theta);s.position.z=s.userData.radius*Math.sin(s.userData.phi)*Math.sin(s.userData.theta)});
+      specialFlowerGroup.children.forEach((s,i)=>{s.userData.theta+=s.userData.speed;s.position.x=s.userData.radius*Math.sin(s.userData.phi)*Math.cos(s.userData.theta);s.position.z=s.userData.radius*Math.sin(s.userData.phi)*Math.sin(s.userData.theta);const boost=Date.now()<s.userData.clickBoost?1.22:1,pulse=1+.06*Math.sin(time*3+i);s.scale.setScalar(s.userData.baseSize*pulse*boost);s.material.opacity=.9+.1*Math.sin(time*2.4+i)});
+      mascotGroup.children.forEach((s,i)=>{s.userData.theta+=s.userData.speed;s.position.x=s.userData.radius*Math.sin(s.userData.phi)*Math.cos(s.userData.theta);s.position.y=s.userData.radius*Math.cos(s.userData.phi)+Math.sin(time*1.5+i)*4;s.position.z=s.userData.radius*Math.sin(s.userData.phi)*Math.sin(s.userData.theta);const p=(1+.045*Math.sin(time*2+i))*(Date.now()<s.userData.clickBoost?1.18:1);s.scale.setScalar(s.userData.baseSize*p);s.material.opacity=.88+.12*Math.sin(time*1.7+i)});
+      distance+=(targetDistance-distance)*.06;const cx=Math.cos(rotX),sx=Math.sin(rotX),cy=Math.cos(rotY),sy=Math.sin(rotY);camera.position.set(distance*sy*cx,distance*sx,distance*cy*cx);camera.lookAt(0,0,0);renderer.render(scene,camera)}
+    animate();
+
+    const start=document.querySelector('#start'),music=document.querySelector('#music'),hint=document.querySelector('#hint'),startButton=document.querySelector('#start-button'),flowerTip=document.querySelector('#flower-tip'),messageLayer=document.querySelector('#message-layer'),messageText=document.querySelector('#message-text'),mascotGuide=document.querySelector('#mascot-guide'),mascotNote=document.querySelector('#mascot-note');
+    let messageIndex=0,started=false;
+    function begin(){started=true;start.classList.add('hide');setTimeout(()=>start.style.display='none',800);music.play().catch(()=>{});hint.classList.add('show');setTimeout(()=>{hint.classList.remove('show');flowerTip.classList.add('show');mascotGuide.classList.add('show');mascotNote.classList.add('show');setTimeout(()=>{flowerTip.classList.remove('show');mascotNote.classList.remove('show')},6800)},3200)}
+    startButton.addEventListener('click',begin);
+    function showFlowerMessage(){messageText.textContent=MESSAGE_BANK[messageIndex++%MESSAGE_BANK.length];messageLayer.classList.add('show')}
+    document.querySelector('#close-message').addEventListener('click',()=>messageLayer.classList.remove('show'));messageLayer.addEventListener('click',e=>{if(e.target===messageLayer)messageLayer.classList.remove('show')});addEventListener('keydown',e=>{if(e.key==='Escape')messageLayer.classList.remove('show')});
+    const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let pressX=0,pressY=0;
+    canvas.addEventListener('pointerdown',e=>{pressX=e.clientX;pressY=e.clientY});
+    const clickableMascots=[centerMascot,...mascotGroup.children];
+    canvas.addEventListener('pointermove',e=>{if(!started)return;pointer.x=e.clientX/innerWidth*2-1;pointer.y=-(e.clientY/innerHeight)*2+1;raycaster.setFromCamera(pointer,camera);canvas.style.cursor=raycaster.intersectObjects(clickableMascots,false).length?'pointer':'grab'});
+    canvas.addEventListener('pointerup',e=>{if(!started||Math.hypot(e.clientX-pressX,e.clientY-pressY)>10)return;pointer.x=e.clientX/innerWidth*2-1;pointer.y=-(e.clientY/innerHeight)*2+1;raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObjects(clickableMascots,false)[0];if(hit){hit.object.userData.clickBoost=Date.now()+340;showFlowerMessage()}});
+  })();
+  </script>
+</body>
+</html>
